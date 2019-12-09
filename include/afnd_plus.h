@@ -10,7 +10,6 @@ typedef unsigned int symbol_i;
 #define NO_INITIAL 0
 #define INITIAL 1
 
-void display(int *ageArray, AFND *afnd);
 
 /**
  * Generate a list of transitions for a state
