@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 {
 	AFND *afd;
 	AFND *(*test_afnd[])() = {AFND2};
+	
 
 	// AFND practica
 	for (int i = 0; i < 1; i++)
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
 			AFNDElimina(p_afnd);
 			return EXIT_SUCCESS;
 		}
+		
 		AFNDADot(afd);
 
 		AFNDElimina(afd);

@@ -5,6 +5,7 @@
 #include "../include/afnd.h"
 #include "../include/afnd_plus.h"
 #include "../include/transforma.h"
+#include "../include/minimiza.h"
 #include "../include/types.h"
 
 typedef struct _state
@@ -130,7 +131,7 @@ AFND *AFNDTransforma(AFND *afnd)
     // Get initial state
     int *initial_list = NULL;
     int initial_list_n = get_states_connected(afnd, &initial_list, AFNDIndiceEstadoInicial(afnd));
-
+    int *t_list_finals = NULL, *t_list_nofinals = NULL;
 #ifdef DEBUG
     printf(P_INFO "Initial state list: [");
     for (int i = 0; i < initial_list_n; i++)
@@ -148,10 +149,15 @@ AFND *AFNDTransforma(AFND *afnd)
     print_state(&f_states[f_states_n-1]);
     printf("\n");
 #endif
-
+   
     // Main loop
     for (int current_state = 0; current_state < f_states_n; current_state++)
     {
+
+         // Implementation of minimiza(.c/.h)
+        int nfs = list_final_states(afnd, &t_list_finals, &t_list_nofinals, f_states[current_state].i_list);
+        printf("FINAL STATES = %d\n",nfs );
+
         // Get all transitions and insert if new
         for (int i = 0; i < AFNDNumSimbolos(afnd); i++)
         {
