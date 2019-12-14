@@ -1,0 +1,10 @@
+digraph stadia_0  { rankdir=LR;
+	_invisible [style="invis"];
+	q0;
+	q1;
+	q3 [penwidth="2"];
+	_invisible -> q0 ;
+	q0 -> q1 [label="0"];
+	q0 -> q0 [label="1"];
+	q1 -> q3 [label="1"];
+}
