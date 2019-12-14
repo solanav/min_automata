@@ -30,10 +30,10 @@ void print_sbc(AFND *afd, sbc *states)
 
 	for (int i = 0; i < states->total_classes; i++)
 	{
-		printf("\tClass %d [", i);
+		printf("\tClass %d (%d) [", i, states->num_states[i]);
 		for (int j = 0; j < states->num_states[i]; j++)
 		{
-			printf("(%s) ", AFNDNombreEstadoEn(afd, states->data[i][j]));
+			printf("(%s:%d) ", AFNDNombreEstadoEn(afd, states->data[i][j]), states->data[i][j]);
 		}
 		printf("]\n");
 	}
@@ -73,6 +73,23 @@ void remove_class_sbc(sbc *states, int class_i)
     
     // Update total classes
     states->total_classes--;
+}
+
+int get_class_sbc(sbc *states, int state)
+{
+    int found = 0;
+
+    // Find the given state
+    for (int i = 0; i < states->total_classes && found == 0; i++)
+    {
+        for (int j = 0; j < states->num_states[i] && found == 0; j++)
+        {
+            if (states->data[i][j] == state)
+                return i;
+        }
+    }
+
+    return -1;    
 }
 
 void add_state_sbc(sbc *states, int class_i, int state)

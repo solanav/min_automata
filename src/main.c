@@ -11,7 +11,7 @@ AFND *AFND_TEST()
 {
 
 	AFND *p_afnd;
-	p_afnd = AFNDNuevo("afnd2", 7, 2);
+	p_afnd = AFNDNuevo("afnd_test", 8, 2);
 
 	AFNDInsertaSimbolo(p_afnd, "0");
 	AFNDInsertaSimbolo(p_afnd, "1");
@@ -19,7 +19,7 @@ AFND *AFND_TEST()
 	AFNDInsertaEstado(p_afnd, "A", INICIAL);
 	AFNDInsertaEstado(p_afnd, "B", NORMAL);
 	AFNDInsertaEstado(p_afnd, "C", FINAL);
-	//AFNDInsertaEstado(p_afnd, "D", NORMAL);
+	AFNDInsertaEstado(p_afnd, "D", NORMAL);
 	AFNDInsertaEstado(p_afnd, "E", NORMAL);
 	AFNDInsertaEstado(p_afnd, "F", NORMAL);
 	AFNDInsertaEstado(p_afnd, "G", NORMAL);
@@ -34,8 +34,8 @@ AFND *AFND_TEST()
 	AFNDInsertaTransicion(p_afnd, "C", "0", "A");
 	AFNDInsertaTransicion(p_afnd, "C", "1", "C");
 	
-	//AFNDInsertaTransicion(p_afnd, "D", "0", "C");
-	//AFNDInsertaTransicion(p_afnd, "D", "1", "G");
+	AFNDInsertaTransicion(p_afnd, "D", "0", "C");
+	AFNDInsertaTransicion(p_afnd, "D", "1", "G");
 	
 	AFNDInsertaTransicion(p_afnd, "E", "0", "H");
 	AFNDInsertaTransicion(p_afnd, "E", "1", "F");
