@@ -154,12 +154,12 @@ AFND *AFNDMinimiza(AFND *afd)
 		AFNDInsertaSimbolo(afd_min, AFNDSimboloEn(afd, i));
 
 	// Insert one state for each class
+	int initial = NO_INITIAL;
 	for (int i = 0; i < states->total_classes; i++)
 	{
-		if (i == 0)
-			AFNDInsertaEstado(afd_min, AFNDNombreEstadoEn(afd, states->data[i][0]), INICIAL);
-		else
-			AFNDInsertaEstado(afd_min, AFNDNombreEstadoEn(afd, states->data[i][0]), NORMAL);
+		int type = gen_type(afd, states->data[i], states->num_states[i], &initial);
+
+		AFNDInsertaEstado(afd_min, AFNDNombreEstadoEn(afd, states->data[i][0]), type);
 	}
 
 	for (int i = 0; i < states->total_classes; i++)
