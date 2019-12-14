@@ -29,7 +29,7 @@ main.o: $(SRC)main.c
 	$(CC) -c -o $(BIN)$@ $< $(CFLAGS)
 
 afnd.o: $(SRC)afnd.c
-	$(CC) -c -o $(BIN)$@ $<
+	$(CC) -c -o $(BIN)$@ $< -g
 
 afnd_plus.o: $(SRC)afnd_plus.c
 	$(CC) -c -o $(BIN)$@ $< $(CFLAGS)

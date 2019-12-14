@@ -7,6 +7,18 @@
 #include "../include/types.h"
 #include "../include/sbc.h"
 
+int get_transition_class(AFND *afd, sbc *states, int state, int symbol_i)
+{
+	int *transition_list;
+	get_transitions(afd, &transition_list, state, symbol_i);
+
+	int transition = get_class_sbc(states, transition_list[0]);
+
+	free(transition_list);
+
+	return transition;
+}
+
 int check_class(AFND *afd, sbc *states, int s0, int s1)
 {
 	int num_sybols = AFNDNumSimbolos(afd);
@@ -14,33 +26,11 @@ int check_class(AFND *afd, sbc *states, int s0, int s1)
 	// For each symbol
 	for (int i = 0; i < num_sybols; i++)
 	{
-		int *t0;
-		get_transitions(afd, &t0, s0, i);
+		int class_s0 = get_transition_class(afd, states, s0, i);
+		int class_s1 = get_transition_class(afd, states, s1, i);
 
-		int *t1;
-		get_transitions(afd, &t1, s1, i);
-
-#ifdef DEBUG
-		printf("\t%s > (%s:%d) [%d] - %s > (%s:%d) [%d]\n",
-			   AFNDNombreEstadoEn(afd, s0),
-			   AFNDNombreEstadoEn(afd, t0[0]),
-			   t0[0],
-			   get_class_sbc(states, t0[0]),
-			   AFNDNombreEstadoEn(afd, s1),
-			   AFNDNombreEstadoEn(afd, t1[0]),
-			   t1[0],
-			   get_class_sbc(states, t1[0]));
-#endif
-
-		if (get_class_sbc(states, t0[0]) != get_class_sbc(states, t1[0]))
-		{
-			free(t0);
-			free(t1);
+		if (class_s0 != class_s1)
 			return 0;
-		}
-
-		free(t0);
-		free(t1);
 	}
 
 	return 1;
@@ -82,11 +72,6 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 		{
 			int state_1 = states->data[class_i][j];
 
-			printf("\n>> [%s:%s]",
-				AFNDNombreEstadoEn(afd, state_0),
-				AFNDNombreEstadoEn(afd, state_1)
-			);
-			
 			// If state is in done list continue
 			int not_done = 0;
 			for (int k = 0; k < dsi; k++)
@@ -107,13 +92,12 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 				dsi++;
 
 				add_state_sbc(states, state_0_class, state_1);
-
-				printf(" <--");
 			}
 		}
 	}
 
-	printf("\n");
+	free(done_states);
+	remove_class_sbc(states, class_i);
 }
 
 void divide_final(AFND *afd, sbc *states)
@@ -140,13 +124,63 @@ AFND *AFNDMinimiza(AFND *afd)
 
 	states = create_sbc(afd);
 
+	// Divide the final state from the rest
 	divide_final(afd, states);
 	print_sbc(afd, states);
 
-	divide_class(afd, states, 0);
-	print_sbc(afd, states);
+	// Keep dividing until nothing changes
+	int old_nc;
+	do
+	{
+		old_nc = states->total_classes;
+		for (int i = 0; i < states->total_classes; i++)
+		{
+			divide_class(afd, states, i);
+			print_sbc(afd, states);
+		}
+	} while (old_nc != states->total_classes);
 
+	// Count number of states
+	int total_states = 0;
+	for (int i = 0; i < states->total_classes; i++)
+		total_states += states->num_states[i];
+
+	int total_symbols = AFNDNumSimbolos(afd);
+
+	AFND *afd_min = AFNDNuevo("afd_min", states->total_classes, total_symbols);
+
+	// Insert the symbols
+	for (int i = 0; i < total_symbols; i++)
+		AFNDInsertaSimbolo(afd_min, AFNDSimboloEn(afd, i));
+
+	// Insert one state for each class
+	for (int i = 0; i < states->total_classes; i++)
+	{
+		if (i == 0)
+			AFNDInsertaEstado(afd_min, AFNDNombreEstadoEn(afd, states->data[i][0]), INICIAL);
+		else
+			AFNDInsertaEstado(afd_min, AFNDNombreEstadoEn(afd, states->data[i][0]), NORMAL);
+	}
+
+	for (int i = 0; i < states->total_classes; i++)
+	{
+		for (int j = 0; j < total_symbols; j++)
+		{
+			char *symbol = AFNDSimboloEn(afd_min, j);
+
+			int s0 = states->data[i][0];
+			int s1 = states->data[get_transition_class(afd, states, s0, j)][0];
+
+			AFNDInsertaTransicion(afd_min,
+				AFNDNombreEstadoEn(afd, s0),
+				symbol,
+				AFNDNombreEstadoEn(afd, s1)
+			);
+		}
+	}
+
+	// Free sbc
 	free_sbc(states);
 
-	return NULL;
+	return afd_min;
 }

@@ -6,7 +6,6 @@ typedef struct _sbc
 	int **data;
 	int *num_states;
 	int total_classes;
-	int total_states;
 } sbc;
 
 void print_sbc(AFND *afd, sbc *states);

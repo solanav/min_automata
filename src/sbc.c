@@ -26,7 +26,7 @@ void swap_state(sbc *states, int class_i, int i, int j)
 
 void print_sbc(AFND *afd, sbc *states)
 {
-	printf("Classes > [%d] | States > [%d]\n", states->total_classes, states->total_states);
+	printf("Classes > [%d]\n", states->total_classes);
 
 	for (int i = 0; i < states->total_classes; i++)
 	{
@@ -94,7 +94,6 @@ int get_class_sbc(sbc *states, int state)
 
 void add_state_sbc(sbc *states, int class_i, int state)
 {
-	states->total_states++;
 	states->num_states[class_i]++;
 	int ns = states->num_states[class_i];
 
@@ -111,9 +110,6 @@ void remove_state_sbc(sbc *states, int class_i, int state_i)
     // Update the number of states of the class
     states->num_states[class_i]--;
     states->data[class_i] = realloc(states->data[class_i], states->num_states[class_i] * sizeof(int));
-    
-    // Update the total states
-    states->total_states--;
 }
 
 void free_sbc(sbc *states)
@@ -130,9 +126,8 @@ sbc *create_sbc()
 {
 	sbc *states = calloc(1, sizeof(sbc));
 
-	// Totals
+	// Total
 	states->total_classes = 1;
-	states->total_states = 0;
 
 	// One int for each class
 	states->num_states = calloc(states->total_classes, sizeof(int));

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "afnd.h": "c",
+        "types.h": "c",
+        "sbc.h": "c"
+    }
+}
