@@ -38,17 +38,19 @@ int check_class(AFND *afd, sbc *states, int s0, int s1)
 
 void divide_class(AFND *afd, sbc *states, int class_i)
 {
+	// Keep a list of states we already checked
 	int *done_states = calloc(states->num_states[class_i], sizeof(int));
-	int dsi = 0;
+	int done_index = 0;
 
 	// For each state in the class
 	for (int i = 0; i < states->num_states[class_i]; i++)
 	{
+		// Get state_0
 		int state_0 = states->data[class_i][i];
 
-		// If state is in done list continue
+		// If state_0 is in done list, skip it
 		int not_done = 0;
-		for (int k = 0; k < dsi; k++)
+		for (int k = 0; k < done_index; k++)
 		{
 			if (done_states[k] == state_0)
 			{
@@ -59,22 +61,23 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 		if (not_done == 1)
 			continue;
 
-		// Add state to done list
-		done_states[dsi] = state_0;
-		dsi++;
+		// Add state_0 to done list
+		done_states[done_index] = state_0;
+		done_index++;
 
-		// Add new class for this state
+		// Add new class for state_0
 		int state_0_class = add_class_sbc(states);
 		add_state_sbc(states, state_0_class, state_0);
 
-		// We check with every other state
+		// For every other state
 		for (int j = 0; j < states->num_states[class_i]; j++)
 		{
+			// Get state_1
 			int state_1 = states->data[class_i][j];
 
-			// If state is in done list continue
+			// If state_1 is in done list, skip it
 			int not_done = 0;
-			for (int k = 0; k < dsi; k++)
+			for (int k = 0; k < done_index; k++)
 			{
 				if (done_states[k] == state_1)
 				{
@@ -85,19 +88,23 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 			if (not_done == 1)
 				continue;
 
-			// Check if both states are of the same class
+			// Check if both states are equivalent
 			if (check_class(afd, states, state_0, state_1) == 1)
 			{
-				done_states[dsi] = state_1;
-				dsi++;
+				// Add state_1 to done_states
+				done_states[done_index] = state_1;
+				done_index++;
 
+				// Add state_1 to state_0's class
 				add_state_sbc(states, state_0_class, state_1);
 			}
 		}
 	}
 
-	free(done_states);
+	// We remove the class we were checking, because we copied all the states to new classes
 	remove_class_sbc(states, class_i);
+
+	free(done_states);
 }
 
 void divide_final(AFND *afd, sbc *states)
@@ -124,32 +131,34 @@ AFND *AFNDMinimiza(AFND *afd)
 
 	states = create_sbc(afd);
 
-	// Divide the final state from the rest
+	// Divide final states from non-final states
 	divide_final(afd, states);
 	print_sbc(afd, states);
 
 	// Keep dividing until nothing changes
-	int old_nc;
+	int num_classes_old;
 	do
 	{
-		old_nc = states->total_classes;
+		// Save the number of classes we have now
+		num_classes_old = states->total_classes;
+
+		// Try to divide the SBC
 		for (int i = 0; i < states->total_classes; i++)
 		{
 			divide_class(afd, states, i);
 			print_sbc(afd, states);
 		}
-	} while (old_nc != states->total_classes);
 
-	// Count number of states
-	int total_states = 0;
-	for (int i = 0; i < states->total_classes; i++)
-		total_states += states->num_states[i];
+		// Check if the number of classes changed, keep going until it doesn't change
+	} while (num_classes_old != states->total_classes);
 
+	// Get number of symbols to create the AFND
 	int total_symbols = AFNDNumSimbolos(afd);
 
+	// Create one state for each class
 	AFND *afd_min = AFNDNuevo("afd_min", states->total_classes, total_symbols);
 
-	// Insert the symbols
+	// Insert the same symbols as the original
 	for (int i = 0; i < total_symbols; i++)
 		AFNDInsertaSimbolo(afd_min, AFNDSimboloEn(afd, i));
 
@@ -162,15 +171,22 @@ AFND *AFNDMinimiza(AFND *afd)
 		AFNDInsertaEstado(afd_min, AFNDNombreEstadoEn(afd, states->data[i][0]), type);
 	}
 
+	// For each new state (or each class)
 	for (int i = 0; i < states->total_classes; i++)
 	{
+		// For each symbol
 		for (int j = 0; j < total_symbols; j++)
 		{
+			// Get symbol
 			char *symbol = AFNDSimboloEn(afd_min, j);
 
+			// State zero is the first of the class
 			int s0 = states->data[i][0];
+
+			// State one is the first of the next class
 			int s1 = states->data[get_transition_class(afd, states, s0, j)][0];
 
+			// Create the transition [s0 --symbol--> s1]
 			AFNDInsertaTransicion(afd_min,
 				AFNDNombreEstadoEn(afd, s0),
 				symbol,
