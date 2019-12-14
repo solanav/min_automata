@@ -1,0 +1,6 @@
+.vscode
+*.o
+./*.png
+./*.jpg
+mach
+run.sh
