@@ -56,9 +56,26 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 	{
 		int state_0 = states->data[class_i][i];
 
+		// If state is in done list continue
+		int not_done = 0;
+		for (int k = 0; k < dsi; k++)
+		{
+			if (done_states[k] == state_0)
+			{
+				not_done = 1;
+				break;
+			}
+		}
+		if (not_done == 1)
+			continue;
+
 		// Add state to done list
 		done_states[dsi] = state_0;
 		dsi++;
+
+		// Add new class for this state
+		int state_0_class = add_class_sbc(states);
+		add_state_sbc(states, state_0_class, state_0);
 
 		// We check with every other state
 		for (int j = 0; j < states->num_states[class_i]; j++)
@@ -72,7 +89,6 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 			
 			// If state is in done list continue
 			int not_done = 0;
-			
 			for (int k = 0; k < dsi; k++)
 			{
 				if (done_states[k] == state_1)
@@ -89,6 +105,8 @@ void divide_class(AFND *afd, sbc *states, int class_i)
 			{
 				done_states[dsi] = state_1;
 				dsi++;
+
+				add_state_sbc(states, state_0_class, state_1);
 
 				printf(" <--");
 			}
